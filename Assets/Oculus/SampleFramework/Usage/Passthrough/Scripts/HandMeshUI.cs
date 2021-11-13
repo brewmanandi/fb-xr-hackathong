@@ -16,6 +16,8 @@ public class HandMeshUI : MonoBehaviour
     public HandMeshMask leftMask;
     public HandMeshMask rightMask;
 
+    private bool _initialized = false;
+
     void Start()
     {
         SetSliderValue(0, rightMask.radialDivisions, false);
@@ -28,7 +30,8 @@ public class HandMeshUI : MonoBehaviour
     void Update()
     {
         CheckForHands();
-
+        if (!_initialized)
+            return;
         Vector3 RfingerPos = rightHand.Bones[20].Transform.position;
         Vector3 LfingerPos = leftHand.Bones[20].Transform.position;
         if (rightHeldKnob >= 0)
@@ -142,9 +145,13 @@ public class HandMeshUI : MonoBehaviour
     void CheckForHands()
     {
         bool handsActive = (
-          OVRInput.GetActiveController() == OVRInput.Controller.Hands ||
-          OVRInput.GetActiveController() == OVRInput.Controller.LHand ||
-          OVRInput.GetActiveController() == OVRInput.Controller.RHand);
+          //(OVRInput.GetActiveController() == OVRInput.Controller.Hands ||
+          //OVRInput.GetActiveController() == OVRInput.Controller.LHand ||
+          //OVRInput.GetActiveController() == OVRInput.Controller.RHand) 
+         // && 
+          rightHand.IsInitialized && leftHand.IsInitialized);
+        
+        _initialized = handsActive;
 
         if (transform.GetChild(0).gameObject.activeSelf)
         {
