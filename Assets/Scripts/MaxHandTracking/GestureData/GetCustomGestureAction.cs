@@ -36,7 +36,7 @@ public class GetCustomGestureAction : MonoBehaviour {
         return $"Pinch {Enum.GetName(typeof(OVRHand.Hand), handedness)}: {gestureChecker.GetPassthroughPinch(handedness)}";
     }
 
-    public CustomGestures QueryForGestures(OVRHand.Hand handedness) {
+    private CustomGestures QueryForGestures(OVRHand.Hand handedness) {
         foreach (CustomGestures gesture in Enum.GetValues(typeof(CustomGestures))) {
             bool customGestureFound = gestureChecker.GetCustomGesture(handedness, gesture);
 
@@ -45,5 +45,13 @@ public class GetCustomGestureAction : MonoBehaviour {
             }
         }
         return CustomGestures.None;
+    }
+
+    public CustomGestures QueryForLeftHandGestures() {
+        return QueryForGestures(OVRHand.Hand.HandLeft);
+    }
+
+    public CustomGestures QueryForRightHandGestures() {
+        return QueryForGestures(OVRHand.Hand.HandRight);
     }
 }
