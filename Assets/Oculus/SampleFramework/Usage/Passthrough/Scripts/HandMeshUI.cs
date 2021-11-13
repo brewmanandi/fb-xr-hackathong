@@ -144,7 +144,10 @@ public class HandMeshUI : MonoBehaviour
         bool handsActive = (
           OVRInput.GetActiveController() == OVRInput.Controller.Hands ||
           OVRInput.GetActiveController() == OVRInput.Controller.LHand ||
-          OVRInput.GetActiveController() == OVRInput.Controller.RHand);
+          OVRInput.GetActiveController() == OVRInput.Controller.RHand ||
+          OVRPlugin.GetHandTrackingEnabled());
+
+        Debug.Log("Hands are tracked?" + handsActive);
 
         if (transform.GetChild(0).gameObject.activeSelf)
         {
