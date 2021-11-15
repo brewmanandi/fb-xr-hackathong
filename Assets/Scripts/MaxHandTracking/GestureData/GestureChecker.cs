@@ -31,14 +31,14 @@ public class GestureChecker : MonoBehaviour, IGestureChecker {
             InitGestureData(leftHand, rightHand);
         }
 
-        leftCustomPinchball = GameObject.Instantiate(customPinchBallPrefab, Vector3.zero, Quaternion.identity);
-        rightCustomPinchball = GameObject.Instantiate(customPinchBallPrefab, Vector3.zero, Quaternion.identity);
+        //leftCustomPinchball = GameObject.Instantiate(customPinchBallPrefab, Vector3.zero, Quaternion.identity);
+        //rightCustomPinchball = GameObject.Instantiate(customPinchBallPrefab, Vector3.zero, Quaternion.identity);
     }
 
     private void Update() {
         CheckForBoneAvailability();
-        leftCustomPinchball.transform.position = CenterPosition(leftThumbTipPos, leftIndexTipPos);
-        rightCustomPinchball.transform.position = CenterPosition(rightThumbTipPos, rightIndexTipPos);
+        //leftCustomPinchball.transform.position = CenterPosition(leftThumbTipPos, leftIndexTipPos);
+        //rightCustomPinchball.transform.position = CenterPosition(rightThumbTipPos, rightIndexTipPos);
     }
 
     private void CheckForBoneAvailability() {

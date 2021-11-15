@@ -23,8 +23,8 @@ public class GetCustomGestureAction : MonoBehaviour {
         leftGestureDebugText.text = GetDebugTextCustomGestures(OVRHand.Hand.HandLeft);
         rightGestureDebugText.text = GetDebugTextCustomGestures(OVRHand.Hand.HandRight);
 
-        leftPinchDebugText.text = GetDebugTextPinch(OVRHand.Hand.HandLeft);
-        rightPinchDebugText.text = GetDebugTextPinch(OVRHand.Hand.HandRight);
+        //leftPinchDebugText.text = GetDebugTextPinch(OVRHand.Hand.HandLeft);
+        //rightPinchDebugText.text = GetDebugTextPinch(OVRHand.Hand.HandRight);
     }
 
     private string GetDebugTextCustomGestures(OVRHand.Hand handedness) {
