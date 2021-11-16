@@ -31,7 +31,7 @@ namespace Pixelplacement.XRTools
         /// <summary>
         /// Ceiling corners are relative to the RoomAnchor.
         /// </summary>
-        public Vector3[] CeilingCorners
+        public List<Vector3[]> CeilingCorners
         {
             get;
             set;
@@ -41,13 +41,13 @@ namespace Pixelplacement.XRTools
         {
             get
             {
-                return CeilingCorners[0].y;
+                return CeilingCorners[0][0].y;
             }
         }
 
         public GameObject[] Walls { get; set; }
-        public GameObject Ceiling { get; set; }
-        public GameObject Floor { get; set; }
+        public List<GameObject> Ceilings { get; set; }
+        public List<GameObject> Floors { get; set; }
 
         //Public Variables:
         public Material ceilingMaterial;
@@ -121,7 +121,7 @@ namespace Pixelplacement.XRTools
             
             OnRoomMapped?.Invoke();
         }
-    
+
         //Public Methods:
         public void Restart()
         {
@@ -131,16 +131,25 @@ namespace Pixelplacement.XRTools
         public void DestroyRoom()
         {
             //sets:
-            CeilingCorners = new Vector3[0];
+            CeilingCorners = new List<Vector3[]>();
+            for (int i=0; i<CeilingCorners.Count; ++i) {
+                CeilingCorners.Add(new Vector3[0]);
+            };
         
             //destroy:
-            Destroy(Ceiling);
-            Destroy(Floor);
+            foreach (var ceiling in Ceilings) {
+                Destroy(ceiling);
+            }
+            foreach (var floor in Floors) {
+                Destroy(floor);
+            }            
             foreach (var wall in Walls)
             {
                 Destroy(wall);
             }
 
+            Ceilings = new List<GameObject>();
+            Floors = new List<GameObject>();
             Walls = new GameObject[0];
         }
     
@@ -148,15 +157,18 @@ namespace Pixelplacement.XRTools
         {
             //serialize room mapping:
             string roomData = "";
-            for (int i = 0; i < CeilingCorners.Length; i++)
-            {
-                Vector3 corner = CeilingCorners[i];
-                roomData += $"{corner.x},{corner.y},{corner.z}";
-                if (i < CeilingCorners.Length - 1)
+            for (int j = 0; j < CeilingCorners.Count; j++) {
+                for (int i = 0; i < CeilingCorners[j].Length; i++)
                 {
-                    roomData += "|";
+                    Vector3 corner = CeilingCorners[j][i];
+                    roomData += $"{corner.x},{corner.y},{corner.z}";
+                    if (i < CeilingCorners[j].Length - 1)
+                    {
+                        roomData += "|";
+                    }
                 }
-            }
+                roomData += "_";
+        }
             
             PlayerPrefs.SetString("RoomMapper", roomData);
         }
@@ -164,15 +176,20 @@ namespace Pixelplacement.XRTools
         public void LoadPrevious()
         {
             //deserialize room mapping:
-            string input = PlayerPrefs.GetString("RoomMapper", "");
-            string[] inputs = input.Split('|');
-            List<Vector3> unwrapped = new List<Vector3>();
-            foreach (var item in inputs)
-            {
-                string[] corners = item.Split(',');
-                unwrapped.Add(new Vector3(float.Parse(corners[0]), float.Parse(corners[1]), float.Parse(corners[2])));
+            string room_input = PlayerPrefs.GetString("RoomMapper", "");
+            string[] rooms = room_input.Split('_');
+            var i=0;
+            foreach (var input in rooms) {
+                string[] inputs = input.Split('|');
+                List<Vector3> unwrapped = new List<Vector3>();
+                foreach (var item in inputs)
+                {
+                    string[] corners = item.Split(',');
+                    unwrapped.Add(new Vector3(float.Parse(corners[0]), float.Parse(corners[1]), float.Parse(corners[2])));
+                }
+                CeilingCorners[i] = unwrapped.ToArray();
+                i++;
             }
-            CeilingCorners = unwrapped.ToArray();
         
             //rebuild the room:
             _childActivator.Activate("BuildGeometry");
@@ -184,8 +201,12 @@ namespace Pixelplacement.XRTools
             {
                 wall.GetComponent<MeshRenderer>().enabled = false;
             }
-            Ceiling.GetComponent<MeshRenderer>().enabled = false;
-            Floor.GetComponent<MeshRenderer>().enabled = false;
+            foreach (var ceiling in Ceilings) {
+                ceiling.GetComponent<MeshRenderer>().enabled = false;
+            }
+            foreach (var floor in Floors) {
+                floor.GetComponent<MeshRenderer>().enabled = false;
+            }
         }
 
         public void ShowGeometry()
@@ -200,12 +221,16 @@ namespace Pixelplacement.XRTools
 
             if (ceilingMaterial)
             {
-                Ceiling.GetComponent<MeshRenderer>().enabled = true;
+                foreach (var ceiling in Ceilings) {
+                    ceiling.GetComponent<MeshRenderer>().enabled = true;
+                }
             }
 
             if (floorMaterial)
             {
-                Floor.GetComponent<MeshRenderer>().enabled = true;
+                foreach (var floor in Floors) {
+                    floor.GetComponent<MeshRenderer>().enabled = true;
+                }
             }
         }
     }

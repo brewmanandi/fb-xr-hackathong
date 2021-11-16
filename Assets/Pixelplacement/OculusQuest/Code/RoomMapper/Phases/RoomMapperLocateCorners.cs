@@ -24,7 +24,9 @@ namespace Pixelplacement.XRTools
         private string _markNextCornerText = "MARK\nNEXT\nCORNER";
         private string _closurePossibleText = "ALL DONE?";
         private List<GameObject> _cornerMarkers;
-        private List<Vector3> _ceilingCorners;
+        private List<List<Vector3>> _ceilingCorners; // rooms
+        private int numRooms = 2;
+        private int currentRoom;
         private bool _closurePossible;
         private bool _overlapping;
         
@@ -43,7 +45,12 @@ namespace Pixelplacement.XRTools
             _onCeiling = false;
             _overlapping = false;
             _closurePossible = false;
-            _ceilingCorners = new List<Vector3>();
+            _ceilingCorners = new List<List<Vector3>>();
+            for (int i=0; i<numRooms; i++) {
+                Debug.Log("Creating room " + i);
+                _ceilingCorners.Add(new List<Vector3>());
+            }
+            currentRoom = 0;
             _cornerMarkers = new List<GameObject>();
             ChangeInstructions(_markFirstCornerText);
             
@@ -73,16 +80,16 @@ namespace Pixelplacement.XRTools
         private void Update()
         {
             //overlap detection:
-            if (_ceilingCorners.Count > 2)
+            if (_ceilingCorners[currentRoom].Count > 2)
             {
                 //check all previous lines for an overlap:
-                Vector3 activeLineStart = _ceilingCorners[_ceilingCorners.Count - 1];
+                Vector3 activeLineStart = _ceilingCorners[currentRoom][_ceilingCorners.Count - 1];
                 Vector3 activeLineEnd = cursor.transform.position;
                 bool foundOverlap = false;
-                for (int i = 0; i < _ceilingCorners.Count - 2; i++)
+                for (int i = 0; i < _ceilingCorners[currentRoom].Count - 2; i++)
                 {
-                    Vector3 existingLineStart = _ceilingCorners[i];
-                    Vector3 existingLineEnd = _ceilingCorners[i + 1];
+                    Vector3 existingLineStart = _ceilingCorners[currentRoom][i];
+                    Vector3 existingLineEnd = _ceilingCorners[currentRoom][i + 1];
 
                     //do lines overlap?
                     if (MathUtilities.AreLinesIntersecting(activeLineStart, activeLineEnd, existingLineStart, existingLineEnd))
@@ -164,17 +171,17 @@ namespace Pixelplacement.XRTools
             }
             
             //closure state:
-            bool canClose = _ceilingCorners.Count > 2 && Vector3.Distance(cursor.transform.position, _ceilingCorners[0]) < _minWallWidth;
+            bool canClose = _ceilingCorners[currentRoom].Count > 2 && Vector3.Distance(cursor.transform.position, _ceilingCorners[currentRoom][0]) < _minWallWidth;
             if (!_closurePossible && canClose)
             {
                 _closurePossible = true;
-                ChangeInstructions(_closurePossibleText);
+                ChangeInstructions(_closurePossibleText + " Room " + currentRoom);
             }
 
             if (_closurePossible && !canClose && !_overlapping)
             {
                 _closurePossible = false;
-                ChangeInstructions(_markNextCornerText);
+                ChangeInstructions(_markNextCornerText + " Room " + currentRoom);
             }
             
             //input:
@@ -189,13 +196,13 @@ namespace Pixelplacement.XRTools
                 if (_onCeiling)
                 {
                     //first corner?
-                    if (_ceilingCorners.Count == 0)
+                    if (_ceilingCorners[currentRoom].Count == 0)
                     {
                         ChangeInstructions(_markNextCornerText);
                         
                         //reset to only corners in perimeter on first corner marking:
                         progress.SetPosition(0, cursor.transform.position);
-                        _ceilingCorners.Add(cursor.transform.position);
+                        _ceilingCorners[currentRoom].Add(cursor.transform.position);
                         
                         PlaceCornerMarker();
                         return;
@@ -205,18 +212,28 @@ namespace Pixelplacement.XRTools
                     if (_closurePossible)
                     {
                         //close loop:
-                        _ceilingCorners.Add(_ceilingCorners[0]);
+                        _ceilingCorners[currentRoom].Add(_ceilingCorners[currentRoom][0]);
                         
                         //convert to anchor space and cache:
-                        for (int i = 0; i < _ceilingCorners.Count; i++)
+                        for (int i = 0; i < _ceilingCorners[currentRoom].Count; i++)
                         {
-                            _ceilingCorners[i] = RoomAnchor.Instance.transform.InverseTransformPoint(_ceilingCorners[i]);
+                            _ceilingCorners[currentRoom][i] = RoomAnchor.Instance.transform.InverseTransformPoint(_ceilingCorners[currentRoom][i]);
                         }
-                        RoomMapper.Instance.CeilingCorners = _ceilingCorners.ToArray();
+                        RoomMapper.Instance.CeilingCorners[currentRoom] = _ceilingCorners[currentRoom].ToArray();
+
+                        // map second room
+                        currentRoom=currentRoom+1;
+                        Debug.Log("currentRoom: " + currentRoom);
+                        if (currentRoom==numRooms) { // no more rooms
+                            //continue:
+                            Next();
+                            return;
+                        } else {
+                            // start mapping second room
+                            // add last ceilingCorner of prev room to new room
+                            _ceilingCorners[currentRoom].Add(_ceilingCorners[currentRoom-1][0]);
+                        }
                         
-                        //continue:
-                        Next();
-                        return;
                     }
                     
                     //plot:
@@ -240,7 +257,7 @@ namespace Pixelplacement.XRTools
             //extend perimeter and mark corner:
             progress.positionCount++;
             progress.SetPosition(progress.positionCount-1, cursor.transform.position);
-            _ceilingCorners.Add(cursor.transform.position);
+            _ceilingCorners[currentRoom].Add(cursor.transform.position);
         }
         
         private void PlaceCornerMarker()

@@ -26,10 +26,12 @@ namespace Pixelplacement.XRTools
             wireframe.positionCount = 0;
             
             //calls:
-            SetCeilingCenter();
-            SetWindingDirection();
-            BuildWalls();
-            BuildHorizontalSurfaces();
+            for (var roomId=0; roomId<RoomMapper.Instance.CeilingCorners.Count; ++roomId) {
+                SetCeilingCenter(roomId);
+                SetWindingDirection(roomId);
+                BuildWalls(roomId);
+                BuildHorizontalSurfaces(roomId);
+            }
             
             //calls:
             RoomMapper.Instance.HideGeometry();
@@ -42,11 +44,11 @@ namespace Pixelplacement.XRTools
         }
 
         //Private Methods:
-        private void BuildHorizontalSurfaces()
+        private void BuildHorizontalSurfaces(int roomId)
         {
             //gameobject creation:
-            GameObject ceiling = new GameObject("(Ceiling)");
-            GameObject floor = new GameObject("(Floor)");
+            GameObject ceiling = new GameObject("(Ceiling)"+roomId);
+            GameObject floor = new GameObject("(Floor)"+roomId);
             ceiling.transform.parent = RoomAnchor.Instance.transform;
             floor.transform.parent = RoomAnchor.Instance.transform;
             
@@ -64,15 +66,15 @@ namespace Pixelplacement.XRTools
             List<Vector2> ceilingVerts2D = new List<Vector2>();
             List<Vector3> floorVerts3D = new List<Vector3>();
             List<Vector2> floorVerts2D = new List<Vector2>();
-            for (int i = 0; i < RoomMapper.Instance.CeilingCorners.Length - 1; i++)
+            for (int i = 0; i < RoomMapper.Instance.CeilingCorners[roomId].Length - 1; i++)
             {
                 //ceiling:
-                Vector3 ceilingVert = ceiling.transform.InverseTransformPoint(RoomAnchor.Instance.transform.TransformPoint(RoomMapper.Instance.CeilingCorners[i]));
+                Vector3 ceilingVert = ceiling.transform.InverseTransformPoint(RoomAnchor.Instance.transform.TransformPoint(RoomMapper.Instance.CeilingCorners[roomId][i]));
                 ceilingVerts3D.Add(ceilingVert);
                 ceilingVerts2D.Add(new Vector2(ceilingVert.x, ceilingVert.z));
                 
                 //floor:
-                Vector3 floorVert = floor.transform.InverseTransformPoint(RoomAnchor.Instance.transform.TransformPoint(RoomMapper.Instance.CeilingCorners[i]));
+                Vector3 floorVert = floor.transform.InverseTransformPoint(RoomAnchor.Instance.transform.TransformPoint(RoomMapper.Instance.CeilingCorners[roomId][i]));
                 floorVerts3D.Add(floorVert);
                 floorVerts2D.Add(new Vector2(floorVert.x, floorVert.z));
             }
@@ -143,15 +145,15 @@ namespace Pixelplacement.XRTools
             floor.transform.Translate(Vector3.down * RoomMapper.Instance.RoomHeight);
             
             //cache:
-            RoomMapper.Instance.Ceiling = ceiling;
-            RoomMapper.Instance.Floor = floor;
+            RoomMapper.Instance.Ceilings[roomId] = ceiling;
+            RoomMapper.Instance.Floors[roomId] = floor;
         }
         
-        private void SetCeilingCenter()
+        private void SetCeilingCenter(int roomId)
         {
             // find bounds:
-            Bounds bounds = new Bounds(RoomAnchor.Instance.transform.TransformPoint(RoomMapper.Instance.CeilingCorners[0]), Vector3.zero);
-            foreach (var corner in RoomMapper.Instance.CeilingCorners)
+            Bounds bounds = new Bounds(RoomAnchor.Instance.transform.TransformPoint(RoomMapper.Instance.CeilingCorners[roomId][0]), Vector3.zero);
+            foreach (var corner in RoomMapper.Instance.CeilingCorners[roomId])
             {
                 bounds.Encapsulate(RoomAnchor.Instance.transform.TransformPoint(corner));
             }
@@ -160,48 +162,48 @@ namespace Pixelplacement.XRTools
             _ceilingCenter = bounds.center;
         }
         
-        private void SetWindingDirection()
+        private void SetWindingDirection(int roomId)
         {
             //discover winding direction:
-            Vector3 centerToFirst = Vector3.Normalize(RoomAnchor.Instance.transform.TransformPoint(RoomMapper.Instance.CeilingCorners[0]) - _ceilingCenter);
-            Vector3 centerToLast = Vector3.Normalize(RoomAnchor.Instance.transform.TransformPoint(RoomMapper.Instance.CeilingCorners[RoomMapper.Instance.CeilingCorners.Length - 2]) - _ceilingCenter);
+            Vector3 centerToFirst = Vector3.Normalize(RoomAnchor.Instance.transform.TransformPoint(RoomMapper.Instance.CeilingCorners[roomId][0]) - _ceilingCenter);
+            Vector3 centerToLast = Vector3.Normalize(RoomAnchor.Instance.transform.TransformPoint(RoomMapper.Instance.CeilingCorners[roomId][RoomMapper.Instance.CeilingCorners[roomId].Length - 2]) - _ceilingCenter);
             float windingAngle = Vector3.SignedAngle(centerToLast, centerToFirst, Vector3.up);
 
             //1 = clockwise, -1 = counterclockwise
             _windingDirection = Mathf.Sign(windingAngle); 
         }
 
-        private void BuildWalls()
+        private void BuildWalls(int roomId)
         {
             List<GameObject> walls = new List<GameObject>();
             
-            for (int i = 0; i < RoomMapper.Instance.CeilingCorners.Length - 1; i++)
+            for (int i = 0; i < RoomMapper.Instance.CeilingCorners[roomId].Length - 1; i++)
             {
                 //create:
-                GameObject wall = new GameObject("(Walls)");
+                GameObject wall = new GameObject("(Walls)" + roomId);
                 wall.transform.parent = RoomAnchor.Instance.transform;
                 
                 //orientation discovery:
-                Vector3 crossPointA = _windingDirection == 1 ? RoomAnchor.Instance.transform.TransformPoint(RoomMapper.Instance.CeilingCorners[i]) : RoomAnchor.Instance.transform.TransformPoint(RoomMapper.Instance.CeilingCorners[1]);
-                Vector3 crossPointB = _windingDirection == 1 ? RoomAnchor.Instance.transform.TransformPoint(RoomMapper.Instance.CeilingCorners[i + 1]) : RoomAnchor.Instance.transform.TransformPoint(RoomMapper.Instance.CeilingCorners[0]);
+                Vector3 crossPointA = _windingDirection == 1 ? RoomAnchor.Instance.transform.TransformPoint(RoomMapper.Instance.CeilingCorners[roomId][i]) : RoomAnchor.Instance.transform.TransformPoint(RoomMapper.Instance.CeilingCorners[roomId][1]);
+                Vector3 crossPointB = _windingDirection == 1 ? RoomAnchor.Instance.transform.TransformPoint(RoomMapper.Instance.CeilingCorners[roomId][i + 1]) : RoomAnchor.Instance.transform.TransformPoint(RoomMapper.Instance.CeilingCorners[roomId][0]);
                 Vector3 wallForward = Vector3.Cross(Vector3.Normalize(crossPointA - crossPointB), Vector3.up);
 
                 //orient:
-                Vector3 left = RoomAnchor.Instance.transform.TransformPoint(RoomMapper.Instance.CeilingCorners[i]) + Vector3.down * (RoomMapper.Instance.RoomHeight * .5f);
-                Vector3 right = RoomAnchor.Instance.transform.TransformPoint(RoomMapper.Instance.CeilingCorners[i + 1]) + Vector3.down * (RoomMapper.Instance.RoomHeight * .5f);
+                Vector3 left = RoomAnchor.Instance.transform.TransformPoint(RoomMapper.Instance.CeilingCorners[roomId][i]) + Vector3.down * (RoomMapper.Instance.RoomHeight * .5f);
+                Vector3 right = RoomAnchor.Instance.transform.TransformPoint(RoomMapper.Instance.CeilingCorners[roomId][i + 1]) + Vector3.down * (RoomMapper.Instance.RoomHeight * .5f);
                 wall.transform.position = Vector3.Lerp(left, right, .5f);
                 wall.transform.rotation = Quaternion.LookRotation(wallForward);
-                wall.transform.localScale = new Vector3(Vector3.Distance(RoomMapper.Instance.CeilingCorners[i], RoomMapper.Instance.CeilingCorners[i + 1]), RoomMapper.Instance.RoomHeight, 1);
+                wall.transform.localScale = new Vector3(Vector3.Distance(RoomMapper.Instance.CeilingCorners[roomId][i], RoomMapper.Instance.CeilingCorners[roomId][i + 1]), RoomMapper.Instance.RoomHeight, 1);
                 
                 //lists:
                 List<Vector3> verts = new List<Vector3>();
                 List<int> tris = new List<int>();
                 
                 //quad corners:
-                Vector3 lowerLeft = RoomAnchor.Instance.transform.TransformPoint(RoomMapper.Instance.CeilingCorners[i]) + Vector3.down * RoomMapper.Instance.RoomHeight;
-                Vector3 upperLeft = RoomAnchor.Instance.transform.TransformPoint(RoomMapper.Instance.CeilingCorners[i]);
-                Vector3 upperRight = RoomAnchor.Instance.transform.TransformPoint(RoomMapper.Instance.CeilingCorners[i + 1]);
-                Vector3 lowerRight = RoomAnchor.Instance.transform.TransformPoint(RoomMapper.Instance.CeilingCorners[i + 1]) + Vector3.down * RoomMapper.Instance.RoomHeight;
+                Vector3 lowerLeft = RoomAnchor.Instance.transform.TransformPoint(RoomMapper.Instance.CeilingCorners[roomId][i]) + Vector3.down * RoomMapper.Instance.RoomHeight;
+                Vector3 upperLeft = RoomAnchor.Instance.transform.TransformPoint(RoomMapper.Instance.CeilingCorners[roomId][i]);
+                Vector3 upperRight = RoomAnchor.Instance.transform.TransformPoint(RoomMapper.Instance.CeilingCorners[roomId][i + 1]);
+                Vector3 lowerRight = RoomAnchor.Instance.transform.TransformPoint(RoomMapper.Instance.CeilingCorners[roomId][i + 1]) + Vector3.down * RoomMapper.Instance.RoomHeight;
                 
                 //set vertices (in local space of wall):
                 verts.Add(wall.transform.InverseTransformPoint(lowerLeft));
@@ -228,7 +230,7 @@ namespace Pixelplacement.XRTools
                     wireframe.SetPosition(wireframe.positionCount - 1, wireframe.transform.InverseTransformPoint(lowerLeft));
                 }
 
-                if (i == RoomMapper.Instance.CeilingCorners.Length - 2)
+                if (i == RoomMapper.Instance.CeilingCorners[roomId].Length - 2)
                 {
                     wireframe.positionCount += 1;
                     wireframe.SetPosition(wireframe.positionCount - 1, wireframe.transform.InverseTransformPoint(upperRight));

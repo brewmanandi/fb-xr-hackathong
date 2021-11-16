@@ -30,7 +30,9 @@ namespace Pixelplacement.RoomMapperDemo
         //Private Variables:
         private void SetCeilingMaterial(Material material)
         {
-            RoomMapper.Instance.Ceiling.GetComponent<Renderer>().material = material;
+            foreach (var ceiling in RoomMapper.Instance.Ceilings) {
+                ceiling.GetComponent<Renderer>().material = material;
+            }
         }
 
         private void SetWallsMaterial(Material material)
@@ -43,7 +45,9 @@ namespace Pixelplacement.RoomMapperDemo
         
         private void SetFloorMaterial(Material material)
         {
-            RoomMapper.Instance.Floor.GetComponent<Renderer>().material = material;
+            foreach (var floor in RoomMapper.Instance.Floors) {
+                floor.GetComponent<Renderer>().material = material;
+            }
         }
     }
 }

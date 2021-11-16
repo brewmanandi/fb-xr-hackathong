@@ -51,9 +51,11 @@ public class RoomMiniatureDemo : RoomMapperDemoState
             wallClone.GetComponent<Renderer>().material = _wallMaterial;
         }
        
-        //get floor
-        GameObject floorClone = Instantiate(RoomMapper.Instance.Floor, _miniature.transform);
-        floorClone.GetComponent<Renderer>().material = _floorMaterial;
+        //get floors
+        foreach (var floor in RoomMapper.Instance.Floors) {
+            GameObject floorClone = Instantiate(floor, _miniature.transform);
+            floorClone.GetComponent<Renderer>().material = _floorMaterial;
+        }
 
         // set scale       
         SetPose();
