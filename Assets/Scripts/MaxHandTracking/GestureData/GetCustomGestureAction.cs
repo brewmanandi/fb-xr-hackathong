@@ -19,13 +19,13 @@ public class GetCustomGestureAction : MonoBehaviour {
         gestureChecker = ServiceLocator.Resolve<IGestureChecker>();
     }
 
-    private void Update() {
-        leftGestureDebugText.text = GetDebugTextCustomGestures(OVRHand.Hand.HandLeft);
-        rightGestureDebugText.text = GetDebugTextCustomGestures(OVRHand.Hand.HandRight);
+    //private void Update() {
+    //    leftGestureDebugText.text = GetDebugTextCustomGestures(OVRHand.Hand.HandLeft);
+    //    rightGestureDebugText.text = GetDebugTextCustomGestures(OVRHand.Hand.HandRight);
 
-        //leftPinchDebugText.text = GetDebugTextPinch(OVRHand.Hand.HandLeft);
-        //rightPinchDebugText.text = GetDebugTextPinch(OVRHand.Hand.HandRight);
-    }
+    //    //leftPinchDebugText.text = GetDebugTextPinch(OVRHand.Hand.HandLeft);
+    //    //rightPinchDebugText.text = GetDebugTextPinch(OVRHand.Hand.HandRight);
+    //}
 
     private string GetDebugTextCustomGestures(OVRHand.Hand handedness) {
         CustomGestures currentHandGesture = QueryForGestures(handedness);

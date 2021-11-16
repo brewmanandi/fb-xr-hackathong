@@ -1,6 +1,9 @@
+using AssetConfigurator;
+using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class RockPaperScissors : MonoBehaviour {
     
@@ -16,47 +19,128 @@ public class RockPaperScissors : MonoBehaviour {
     };
 
     [SerializeField]
+    private GameObject demonDog;
+
+    [SerializeField]
+    private AudioSource ambientAudio;
+    [SerializeField]
+    private AudioSource endbossAudio;
+    [SerializeField]
+    private AudioSource demonDogDefeated;
+    [SerializeField]
+    private AudioSource demonDogAttack;
+    [SerializeField]
+    private AudioSource demonDogHit;
+    [SerializeField]
+    private AudioSource demonDogHowl;
+
+    [SerializeField]
     private List<GameObject> rpsCubes;
     [SerializeField]
     private TextMeshProUGUI leftRpsDebugText;
     [SerializeField]
     private TextMeshProUGUI rightRpsDebugText;
     [SerializeField]
+    private TextMeshProUGUI roundStateDebugText;
+    [SerializeField]
+    private TextMeshProUGUI scoreDebugText;
+    [SerializeField]
     private GetCustomGestureAction getCustomGestureAction;
+
+    [SerializeField]
+    private UnityEvent finishedBoss;
+
+    private AssetConfigurationData target;
 
     private int currentCubeIndex;
     private int lastCubeIndex;
+    private bool checkForResult;
+    private bool gameOver;
+
+    [SerializeField]
+    private int score;
 
     private void Start() {
         foreach (GameObject cube in rpsCubes) {
             cube.SetActive(false);
         }
+        score = 0;
         lastCubeIndex = -1;
+        roundStateDebugText.text = "WAIT FOR NEXT\nROUND TO START";
+        InvokeRepeating("SetRandomCubeActive", 3, 3);
 
-        InvokeRepeating("SetRandomCubeActive", 0, 3);
+        target = demonDog.GetComponent<AssetConfigurationData>();
+        ambientAudio.Stop();
+        endbossAudio.Play();
+
+        // animation enter the scene
+        target.TargetAnimator.Play(target.AnimationOptions[6].Animation.name);
+        demonDogHowl.Play();
     }
 
     private void Update() {
-        CustomGestures currentLeftHandGesture = getCustomGestureAction.QueryForLeftHandGestures();
-        CustomGestures currentRightHandGesture = getCustomGestureAction.QueryForRightHandGestures();
+        if (!gameOver) {
+            CustomGestures currentLeftHandGesture = getCustomGestureAction.QueryForLeftHandGestures();
+            CustomGestures currentRightHandGesture = getCustomGestureAction.QueryForRightHandGestures();
 
-        leftRpsDebugText.text = GetDebugTextRps((int)currentLeftHandGesture, currentCubeIndex);
-        rightRpsDebugText.text = GetDebugTextRps((int)currentRightHandGesture, currentCubeIndex);
+            if (checkForResult) {
+                leftRpsDebugText.text = GetDebugTextRps((int)currentLeftHandGesture, currentCubeIndex);
+            }
+            if (checkForResult) {
+                rightRpsDebugText.text = GetDebugTextRps((int)currentRightHandGesture, currentCubeIndex);
+            }
+
+            scoreDebugText.text = "Your score: " + score;
+
+            if (score >= 3) {
+                CancelInvoke();
+                roundStateDebugText.text = "YOU WON!\nEXIT NOW!";
+                // animation die
+                target.TargetAnimator.Play(target.AnimationOptions[4].Animation.name);
+                // unlock door
+
+                gameOver = true;
+                endbossAudio.Stop();
+                demonDogDefeated.Play();
+                finishedBoss.Invoke();
+            }
+        }
     }
 
     private string GetDebugTextRps(int attacker, int defender) {
+        string resultText = "NO RESULT";
+        roundStateDebugText.text = "GOGOGOGOGO!!!";
         int result = rpsMatrix[attacker, defender];
-        Debug.Log("Result: " + result);
+
         switch (result) {
             case 0:
-                return "DRAW";
+                checkForResult = false;
+                resultText = Enum.GetName(typeof(CustomGestures), attacker) + " DRAW";
+                roundStateDebugText.text = "WAIT FOR NEXT\nROUND TO START";
+                break;
             case 1:
-                return "YOU WIN";
+                checkForResult = false;
+                resultText = Enum.GetName(typeof(CustomGestures), attacker) + " YOU WIN";
+                roundStateDebugText.text = "WAIT FOR NEXT\nROUND TO START";
+                score++;
+
+                // animation got hit
+                target.TargetAnimator.Play(target.AnimationOptions[6].Animation.name);
+                demonDogHit.Play();
+
+                break;
             case 2:
-                return "YOU LOSE";
-            default:
-                return "NO RESULT";
+                checkForResult = false;
+                resultText = Enum.GetName(typeof(CustomGestures), attacker) + " YOU LOSE";
+                roundStateDebugText.text = "WAIT FOR NEXT\nROUND TO START";
+                score--;
+
+                // animation attack
+                target.TargetAnimator.Play(target.AnimationOptions[2].Animation.name);
+                demonDogAttack.Play();
+                break;
         }
+        return resultText;
     }
 
     private void SetRandomCubeActive() {
@@ -64,8 +148,9 @@ public class RockPaperScissors : MonoBehaviour {
             rpsCubes[lastCubeIndex].SetActive(false);
         }
 
-        currentCubeIndex = Random.Range(0, 3);
+        currentCubeIndex = UnityEngine.Random.Range(0, 3);
         rpsCubes[currentCubeIndex].SetActive(true);
         lastCubeIndex = currentCubeIndex;
+        checkForResult = true;
     }
 }
