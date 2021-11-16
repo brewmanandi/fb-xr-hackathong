@@ -92,18 +92,7 @@ public class RockPaperScissors : MonoBehaviour {
 
             scoreDebugText.text = "Your score: " + score;
 
-            if (score >= 3) {
-                CancelInvoke();
-                roundStateDebugText.text = "YOU WON!\nEXIT NOW!";
-                // animation die
-                target.TargetAnimator.Play(target.AnimationOptions[4].Animation.name);
-                // unlock door
-
-                gameOver = true;
-                endbossAudio.Stop();
-                demonDogDefeated.Play();
-                finishedBoss.Invoke();
-            }
+            CheckIfBossIsDefeated();
         }
     }
 
@@ -141,6 +130,21 @@ public class RockPaperScissors : MonoBehaviour {
                 break;
         }
         return resultText;
+    }
+
+    private void CheckIfBossIsDefeated() {
+        if (score >= 3) {
+            CancelInvoke();
+            roundStateDebugText.text = "YOU WON!\nEXIT NOW!";
+            // animation die
+            target.TargetAnimator.Play(target.AnimationOptions[4].Animation.name);
+            // unlock door
+
+            gameOver = true;
+            endbossAudio.Stop();
+            demonDogDefeated.Play();
+            finishedBoss.Invoke();
+        }
     }
 
     private void SetRandomCubeActive() {
