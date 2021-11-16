@@ -9,11 +9,11 @@ namespace Pixelplacement.XRTools
     /// </summary>
     [RequireComponent(typeof(ChildActivator))]
     [DefaultExecutionOrder(-1)]
-    public class RoomMapper : MonoBehaviour
+    public class RoomMapper : MonoBehaviour, IRoomMapperExtended
     {
         //Events:
-        public Action OnRoomMapped; 
-        
+        public Action OnRoomMapped;
+
         //Public Properties:
         public static RoomMapper Instance
         {
@@ -36,7 +36,7 @@ namespace Pixelplacement.XRTools
             get;
             set;
         }
-        
+
         public float RoomHeight
         {
             get
@@ -48,6 +48,8 @@ namespace Pixelplacement.XRTools
         public GameObject[] Walls { get; set; }
         public GameObject Ceiling { get; set; }
         public GameObject Floor { get; set; }
+        public List<GameObject> Windows { get; set; } = new List<GameObject>();
+        public Vector3[,] WindowsPoses { get; set; } = new Vector3[0, 0];
 
         //Public Variables:
         public Material ceilingMaterial;
@@ -68,21 +70,21 @@ namespace Pixelplacement.XRTools
             {
                 content.SetActive(false);
             }
-            
+
             //calls:
             VrGuiInput.Establish();
             RoomAnchor.Instance.Create();
-            
+
             //refs:
             _childActivator = GetComponent<ChildActivator>();
             OVRManager ovrManager = FindObjectOfType<OVRManager>();
-            
+
             //sets:
             ovrManager.trackingOriginType = OVRManager.TrackingOrigin.FloorLevel;
-            
+
             //register:
             RoomAnchor.Instance.RegisterForUpdates(RoomAnchorReadyCallback);
-            
+
             //hooks:
             _childActivator.OnLastChild += HandleOnLastChild;
         }
@@ -92,16 +94,17 @@ namespace Pixelplacement.XRTools
         {
             //sets:
             _instance = null;
-            
+
             //hooks:
             _childActivator.OnLastChild -= HandleOnLastChild;
         }
-    
+
         //Callbacks:
         private void RoomAnchorReadyCallback()
         {
             if (PlayerPrefs.HasKey("RoomMapper"))
             {
+                LoadWindows();
                 LoadPrevious();
             }
             else
@@ -109,7 +112,7 @@ namespace Pixelplacement.XRTools
                 Restart();
             }
         }
-        
+
         //Event Handlers:
         private void HandleOnLastChild(ChildActivator obj)
         {
@@ -118,10 +121,10 @@ namespace Pixelplacement.XRTools
             {
                 content.SetActive(true);
             }
-            
+
             OnRoomMapped?.Invoke();
         }
-    
+
         //Public Methods:
         public void Restart()
         {
@@ -132,7 +135,7 @@ namespace Pixelplacement.XRTools
         {
             //sets:
             CeilingCorners = new Vector3[0];
-        
+
             //destroy:
             Destroy(Ceiling);
             Destroy(Floor);
@@ -141,9 +144,19 @@ namespace Pixelplacement.XRTools
                 Destroy(wall);
             }
 
+            foreach (var window in Windows)
+            {
+                Destroy(window);
+            }
+
             Walls = new GameObject[0];
+            Windows = new List<GameObject>();
+            WindowsPoses = new Vector3[0,0];
+
+            // clear prev save
+            PlayerPrefs.DeleteAll();
         }
-    
+
         public void Save()
         {
             //serialize room mapping:
@@ -157,27 +170,96 @@ namespace Pixelplacement.XRTools
                     roomData += "|";
                 }
             }
-            
+
             PlayerPrefs.SetString("RoomMapper", roomData);
         }
 
         public void LoadPrevious()
         {
-            //deserialize room mapping:
-            string input = PlayerPrefs.GetString("RoomMapper", "");
-            string[] inputs = input.Split('|');
-            List<Vector3> unwrapped = new List<Vector3>();
-            foreach (var item in inputs)
+            try
             {
-                string[] corners = item.Split(',');
-                unwrapped.Add(new Vector3(float.Parse(corners[0]), float.Parse(corners[1]), float.Parse(corners[2])));
+                //deserialize room mapping:
+                string input = PlayerPrefs.GetString("RoomMapper", "");
+                string[] inputs = input.Split('|');
+                List<Vector3> unwrapped = new List<Vector3>();
+                foreach (var item in inputs)
+                {
+                    string[] corners = item.Split(',');
+                    unwrapped.Add(new Vector3(float.Parse(corners[0]), float.Parse(corners[1]), float.Parse(corners[2])));
+                }
+                CeilingCorners = unwrapped.ToArray();
+                // LoadWindows();
+
+                //rebuild the room:
+                _childActivator.Activate("BuildGeometry");
             }
-            CeilingCorners = unwrapped.ToArray();
-        
-            //rebuild the room:
-            _childActivator.Activate("BuildGeometry");
+            catch (Exception e)
+            {
+                PlayerPrefs.DeleteAll();
+                throw e;
+            }
         }
-    
+        public void SaveWindows()
+        {
+            //serialize room windows:
+            string windowsPositionData = "";
+            string windowsScaleData = "";
+            for (int i = 0; i < Windows.Count; i++)
+            {
+                Vector3 windowPosition = Windows[i].transform.position;
+                Vector3 windowScale = Windows[i].transform.localScale;
+                windowsPositionData += $"{windowPosition.x},{windowPosition.y},{windowPosition.z}";
+                windowsScaleData += $"{windowScale.x},{windowScale.y},{windowScale.z}";
+                if (i < Windows.Count - 1)
+                {
+                    windowsPositionData += "|";
+                    windowsScaleData += "|";
+                }
+            }
+            if (!string.IsNullOrEmpty(windowsPositionData))
+            {
+                PlayerPrefs.SetString("WindowsPositions", windowsPositionData);
+                PlayerPrefs.SetString("WindowsScales", windowsScaleData);
+            }
+        }
+
+        public void LoadWindows()
+        {
+            if (!PlayerPrefs.HasKey("WindowsPositions"))
+                return;
+            //deserialize room windows:
+            List<Vector3> windowsPositions = deserialize("WindowsPositions");
+            List<Vector3> windowsScales = deserialize("WindowsScales");
+            WindowsPoses = new Vector3[windowsPositions.Count, 2];
+            for (int i = 0; i < windowsPositions.Count; i++)
+            {
+                WindowsPoses[i, 0] = windowsPositions[i];
+                WindowsPoses[i, 1] = windowsScales[i];
+            }
+
+            // local function
+            List<Vector3> deserialize(string key)
+            {
+                List<Vector3> unwrapped = new List<Vector3>();
+                try
+                {
+                    string input = PlayerPrefs.GetString(key, "");
+                    string[] inputs = input.Split('|');
+                    foreach (var item in inputs)
+                    {
+                        string[] vector3 = item.Split(',');
+                        unwrapped.Add(new Vector3(float.Parse(vector3[0]), float.Parse(vector3[1]), float.Parse(vector3[2])));
+                    }
+                }
+                catch (Exception e)
+                {
+                    PlayerPrefs.DeleteAll();
+                    throw e;
+                }
+                return unwrapped;
+            }
+        }
+
         public void HideGeometry()
         {
             foreach (var wall in Walls)
@@ -208,5 +290,7 @@ namespace Pixelplacement.XRTools
                 Floor.GetComponent<MeshRenderer>().enabled = true;
             }
         }
+
+
     }
 }

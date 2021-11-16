@@ -11,7 +11,7 @@ public class RoomMiniatureDemo : RoomMapperDemoState
     [SerializeField] Material _wallMaterial;
     [SerializeField] Material _floorMaterial;
     [SerializeField] float _scaleFactor = 0.01f;
-    [SerializeField] float _distance = 1.75f;
+    [SerializeField] float _distance = .75f;
     [SerializeField] float _height = 1.25f;
 
     private GameObject _miniature = null;

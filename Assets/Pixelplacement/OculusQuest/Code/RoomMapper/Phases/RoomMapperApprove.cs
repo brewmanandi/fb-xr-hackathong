@@ -34,7 +34,8 @@ namespace Pixelplacement.XRTools
         {
             RoomMapper.Instance.Save();
             RoomMapper.Instance.ShowGeometry();
-            Next(true);
+           // Next(true); uncomment if you don't wanna map windows
+            Next();
         }
         
         private void HandleRedo()

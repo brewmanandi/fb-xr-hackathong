@@ -1,14 +1,16 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
 namespace Pixelplacement.XRTools
 {
-    public class RoomMapperBuildGeometry : RoomMapperPhase
+    public class RoomMapperBuildGeometry : RoomMapperPhase, IBuildGeometry
     {
+        [SerializeField] GameObject _windowPrefab;
         //Public Variables:
         public LineRenderer wireframe;
-        
+
         //Private Variables:
         private Vector3 _ceilingCenter;
         private float _windingDirection;
@@ -24,19 +26,20 @@ namespace Pixelplacement.XRTools
         {
             //sets:
             wireframe.positionCount = 0;
-            
+
             //calls:
             SetCeilingCenter();
             SetWindingDirection();
             BuildWalls();
             BuildHorizontalSurfaces();
-            
+            BuildWindows();
+
             //calls:
             RoomMapper.Instance.HideGeometry();
-            
+
             //activate:
             wireframe.gameObject.SetActive(true);
-            
+
             //continue:
             Next();
         }
@@ -49,7 +52,7 @@ namespace Pixelplacement.XRTools
             GameObject floor = new GameObject("(Floor)");
             ceiling.transform.parent = RoomAnchor.Instance.transform;
             floor.transform.parent = RoomAnchor.Instance.transform;
-            
+
             //mesh creation:
             Mesh floorMesh = new Mesh();
             Mesh ceilingMesh = new Mesh();
@@ -58,7 +61,7 @@ namespace Pixelplacement.XRTools
             ceiling.transform.SetPositionAndRotation(_ceilingCenter, RoomAnchor.Instance.transform.rotation);
             ceiling.transform.Rotate(Vector3.forward * 180);
             floor.transform.SetPositionAndRotation(_ceilingCenter, RoomAnchor.Instance.transform.rotation);
-            
+
             //get all local points:
             List<Vector3> ceilingVerts3D = new List<Vector3>();
             List<Vector2> ceilingVerts2D = new List<Vector2>();
@@ -70,17 +73,17 @@ namespace Pixelplacement.XRTools
                 Vector3 ceilingVert = ceiling.transform.InverseTransformPoint(RoomAnchor.Instance.transform.TransformPoint(RoomMapper.Instance.CeilingCorners[i]));
                 ceilingVerts3D.Add(ceilingVert);
                 ceilingVerts2D.Add(new Vector2(ceilingVert.x, ceilingVert.z));
-                
+
                 //floor:
                 Vector3 floorVert = floor.transform.InverseTransformPoint(RoomAnchor.Instance.transform.TransformPoint(RoomMapper.Instance.CeilingCorners[i]));
                 floorVerts3D.Add(floorVert);
                 floorVerts2D.Add(new Vector2(floorVert.x, floorVert.z));
             }
-            
+
             //set vers:
             ceilingMesh.vertices = ceilingVerts3D.ToArray();
             floorMesh.vertices = floorVerts3D.ToArray();
-            
+
             //triangles:
             int[] ceilingTriangles = new Triangulator(ceilingVerts2D.ToArray()).Triangulate();
             int[] floorTriangles = new Triangulator(floorVerts2D.ToArray()).Triangulate();
@@ -99,7 +102,7 @@ namespace Pixelplacement.XRTools
             Vector2[] uvs = new Vector2[floorVerts2D.Count];
             for (int i = 0; i < uvs.Length; i++)
             {
-                uvs [i] = new Vector2 (floorVerts2D[i].x, floorVerts2D[i].y);
+                uvs[i] = new Vector2(floorVerts2D[i].x, floorVerts2D[i].y);
             }
             ceilingMesh.uv = uvs;
             floorMesh.uv = uvs;
@@ -107,7 +110,7 @@ namespace Pixelplacement.XRTools
             //rendering components:
             ceiling.AddComponent<MeshFilter>().mesh = ceilingMesh;
             floor.AddComponent<MeshFilter>().mesh = floorMesh;
-            
+
             //materials:
             MeshRenderer ceilingRenderer = ceiling.AddComponent<MeshRenderer>();
             if (RoomMapper.Instance.ceilingMaterial)
@@ -128,25 +131,25 @@ namespace Pixelplacement.XRTools
             {
                 floorRenderer.enabled = false;
             }
-            
+
             //calculate:
             ceilingMesh.RecalculateNormals();
             ceilingMesh.RecalculateBounds();
             floorMesh.RecalculateNormals();
             floorMesh.RecalculateBounds();
-            
+
             //colliders (no need for mesh colliders - simplify with boxes):
             ceiling.AddComponent<BoxCollider>();
             floor.AddComponent<BoxCollider>();
 
             //push floor down:
             floor.transform.Translate(Vector3.down * RoomMapper.Instance.RoomHeight);
-            
+
             //cache:
             RoomMapper.Instance.Ceiling = ceiling;
             RoomMapper.Instance.Floor = floor;
         }
-        
+
         private void SetCeilingCenter()
         {
             // find bounds:
@@ -155,11 +158,11 @@ namespace Pixelplacement.XRTools
             {
                 bounds.Encapsulate(RoomAnchor.Instance.transform.TransformPoint(corner));
             }
-            
+
             //sets:
             _ceilingCenter = bounds.center;
         }
-        
+
         private void SetWindingDirection()
         {
             //discover winding direction:
@@ -168,19 +171,20 @@ namespace Pixelplacement.XRTools
             float windingAngle = Vector3.SignedAngle(centerToLast, centerToFirst, Vector3.up);
 
             //1 = clockwise, -1 = counterclockwise
-            _windingDirection = Mathf.Sign(windingAngle); 
+            _windingDirection = Mathf.Sign(windingAngle);
         }
 
         private void BuildWalls()
         {
             List<GameObject> walls = new List<GameObject>();
-            
+
             for (int i = 0; i < RoomMapper.Instance.CeilingCorners.Length - 1; i++)
             {
                 //create:
                 GameObject wall = new GameObject("(Walls)");
+                wall.tag = "Wall"; // for collision detection with windows
                 wall.transform.parent = RoomAnchor.Instance.transform;
-                
+
                 //orientation discovery:
                 Vector3 crossPointA = _windingDirection == 1 ? RoomAnchor.Instance.transform.TransformPoint(RoomMapper.Instance.CeilingCorners[i]) : RoomAnchor.Instance.transform.TransformPoint(RoomMapper.Instance.CeilingCorners[1]);
                 Vector3 crossPointB = _windingDirection == 1 ? RoomAnchor.Instance.transform.TransformPoint(RoomMapper.Instance.CeilingCorners[i + 1]) : RoomAnchor.Instance.transform.TransformPoint(RoomMapper.Instance.CeilingCorners[0]);
@@ -192,23 +196,23 @@ namespace Pixelplacement.XRTools
                 wall.transform.position = Vector3.Lerp(left, right, .5f);
                 wall.transform.rotation = Quaternion.LookRotation(wallForward);
                 wall.transform.localScale = new Vector3(Vector3.Distance(RoomMapper.Instance.CeilingCorners[i], RoomMapper.Instance.CeilingCorners[i + 1]), RoomMapper.Instance.RoomHeight, 1);
-                
+
                 //lists:
                 List<Vector3> verts = new List<Vector3>();
                 List<int> tris = new List<int>();
-                
+
                 //quad corners:
                 Vector3 lowerLeft = RoomAnchor.Instance.transform.TransformPoint(RoomMapper.Instance.CeilingCorners[i]) + Vector3.down * RoomMapper.Instance.RoomHeight;
                 Vector3 upperLeft = RoomAnchor.Instance.transform.TransformPoint(RoomMapper.Instance.CeilingCorners[i]);
                 Vector3 upperRight = RoomAnchor.Instance.transform.TransformPoint(RoomMapper.Instance.CeilingCorners[i + 1]);
                 Vector3 lowerRight = RoomAnchor.Instance.transform.TransformPoint(RoomMapper.Instance.CeilingCorners[i + 1]) + Vector3.down * RoomMapper.Instance.RoomHeight;
-                
+
                 //set vertices (in local space of wall):
                 verts.Add(wall.transform.InverseTransformPoint(lowerLeft));
                 verts.Add(wall.transform.InverseTransformPoint(upperLeft));
                 verts.Add(wall.transform.InverseTransformPoint(upperRight));
                 verts.Add(wall.transform.InverseTransformPoint(lowerRight));
-                
+
                 //build/extend wireframe:
                 if (i == 0)
                 {
@@ -233,7 +237,7 @@ namespace Pixelplacement.XRTools
                     wireframe.positionCount += 1;
                     wireframe.SetPosition(wireframe.positionCount - 1, wireframe.transform.InverseTransformPoint(upperRight));
                 }
-                
+
                 //set triangles:
                 tris.Add(verts.Count - 4);
                 tris.Add(verts.Count - 3);
@@ -241,12 +245,12 @@ namespace Pixelplacement.XRTools
                 tris.Add(verts.Count - 2);
                 tris.Add(verts.Count - 1);
                 tris.Add(verts.Count - 4);
-                
+
                 if (_windingDirection == -1)
                 {
                     tris.Reverse();
                 }
-                
+
                 //uvs:
                 Vector2[] uvs = new Vector2[]
                 {
@@ -263,13 +267,13 @@ namespace Pixelplacement.XRTools
                 mesh.uv = uvs;
                 mesh.RecalculateNormals();
                 mesh.RecalculateBounds();
-                
+
                 //rendering:
                 wall.AddComponent<MeshFilter>().mesh = mesh;
-                
+
                 //collider:
                 wall.AddComponent<BoxCollider>().size = new Vector3(1, 1, .01f);
-                
+
                 //material:
                 MeshRenderer wallRenderer = wall.AddComponent<MeshRenderer>();
                 if (RoomMapper.Instance.wallMaterial)
@@ -317,6 +321,28 @@ namespace Pixelplacement.XRTools
             //make the list be largest to smallest:
             unsortedWalls.Reverse();
             return unsortedWalls;
+        }
+
+        public GameObject BuildWindow(Vector3 position, Quaternion rotaion, Vector3 scale, int index)
+        {
+            var window = Instantiate(_windowPrefab, position, rotaion);
+            window.name = $"Window {index}";
+            window.transform.localScale = scale;
+            return window;
+        }
+
+        public void BuildWindows()
+        {
+            // some bugs with windows rotations...needs more investigation
+            //List<GameObject> windows = new List<GameObject>();
+            //Quaternion rot = Quaternion.identity;
+            //for (int i = 0; i < RoomMapper.Instance.WindowsPoses.GetLength(0); i++)
+            //{
+            //    Vector3 pos = RoomMapper.Instance.WindowsPoses[i, 0];
+            //    Vector3 scale = RoomMapper.Instance.WindowsPoses[i, 1];
+            //    windows.Add(BuildWindow(pos, rot, scale, i));
+            //}
+            //RoomMapper.Instance.Windows.AddRange(windows);
         }
     }
 }

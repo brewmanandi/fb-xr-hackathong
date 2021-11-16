@@ -6,8 +6,8 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/Miniature of scanned area (Room mapper).unity
-    guid: 4de9c578e582c6f4680a571c8ddaaefc
+    path: Assets/Scenes/RoomMapper with stencil buffer.unity
+    guid: f4c95656ee6ccbb4893241f271bd49fd
   m_configObjects:
     Unity.XR.Oculus.Settings: {fileID: 11400000, guid: 1328bf0f272920842ae814781e6e8471, type: 2}
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 526757c0bf42d01478e01965db68f7be, type: 2}
