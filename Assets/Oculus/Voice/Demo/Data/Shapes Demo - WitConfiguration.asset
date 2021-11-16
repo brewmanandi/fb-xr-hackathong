@@ -14,13 +14,37 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   application:
     witConfiguration: {fileID: 0}
-    name: 
-    id: 
-    lang: 
+    name: fb_xr_hackathon
+    id: 1201520667023986
+    lang: en
     isPrivate: 0
-    createdAt: 
+    createdAt: 2021-11-13T03:09:28-0800
   configId: 4e21a24e472ab684e84db753427d5687
-  clientAccessToken: 
-  entities: []
-  intents: []
-  traits: []
+  clientAccessToken: P6G654R7Z3R5DWEA3HHOKJETWOZCK5GY
+  entities:
+  - witConfiguration: {fileID: 11400000}
+    id: 269332418480974
+    name: What_is_the_highes_mountain_in_the_world_
+    lookups:
+    - free-text
+    - keywords
+    roles:
+    - 
+    keywords:
+    - keyword: Mount Everest
+      synonyms:
+      - Mount Everest
+  intents:
+  - witConfiguration: {fileID: 11400000}
+    id: 1031720170744551
+    name: answer1
+    entities: []
+  - witConfiguration: {fileID: 11400000}
+    id: 454839656000223
+    name: question1
+    entities: []
+  traits:
+  - witConfiguration: {fileID: 11400000}
+    id: 368903205006891
+    name: wit_yesno
+    values: []
