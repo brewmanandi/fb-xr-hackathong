@@ -33,6 +33,8 @@ public class RockPaperScissors : MonoBehaviour {
     private AudioSource demonDogHit;
     [SerializeField]
     private AudioSource demonDogHowl;
+    [SerializeField]
+    private AudioSource roundGoGoGo;
 
     [SerializeField]
     private List<GameObject> rpsCubes;
@@ -99,35 +101,38 @@ public class RockPaperScissors : MonoBehaviour {
     private string GetDebugTextRps(int attacker, int defender) {
         string resultText = "NO RESULT";
         roundStateDebugText.text = "GOGOGOGOGO!!!";
-        int result = rpsMatrix[attacker, defender];
+        roundGoGoGo.Play();
+        if (attacker >= 0) {
+            int result = rpsMatrix[attacker, defender];
 
-        switch (result) {
-            case 0:
-                checkForResult = false;
-                resultText = Enum.GetName(typeof(CustomGestures), attacker) + " DRAW";
-                roundStateDebugText.text = "WAIT FOR NEXT\nROUND TO START";
-                break;
-            case 1:
-                checkForResult = false;
-                resultText = Enum.GetName(typeof(CustomGestures), attacker) + " YOU WIN";
-                roundStateDebugText.text = "WAIT FOR NEXT\nROUND TO START";
-                score++;
+            switch (result) {
+                case 0:
+                    checkForResult = false;
+                    resultText = Enum.GetName(typeof(CustomGestures), attacker) + " DRAW";
+                    roundStateDebugText.text = "WAIT FOR NEXT\nROUND TO START";
+                    break;
+                case 1:
+                    checkForResult = false;
+                    resultText = Enum.GetName(typeof(CustomGestures), attacker) + " YOU WIN";
+                    roundStateDebugText.text = "WAIT FOR NEXT\nROUND TO START";
+                    score++;
 
-                // animation got hit
-                target.TargetAnimator.Play(target.AnimationOptions[6].Animation.name);
-                demonDogHit.Play();
+                    // animation got hit
+                    target.TargetAnimator.Play(target.AnimationOptions[6].Animation.name);
+                    demonDogHit.Play();
 
-                break;
-            case 2:
-                checkForResult = false;
-                resultText = Enum.GetName(typeof(CustomGestures), attacker) + " YOU LOSE";
-                roundStateDebugText.text = "WAIT FOR NEXT\nROUND TO START";
-                score--;
+                    break;
+                case 2:
+                    checkForResult = false;
+                    resultText = Enum.GetName(typeof(CustomGestures), attacker) + " YOU LOSE";
+                    roundStateDebugText.text = "WAIT FOR NEXT\nROUND TO START";
+                    score--;
 
-                // animation attack
-                target.TargetAnimator.Play(target.AnimationOptions[2].Animation.name);
-                demonDogAttack.Play();
-                break;
+                    // animation attack
+                    target.TargetAnimator.Play(target.AnimationOptions[2].Animation.name);
+                    demonDogAttack.Play();
+                    break;
+            }
         }
         return resultText;
     }
