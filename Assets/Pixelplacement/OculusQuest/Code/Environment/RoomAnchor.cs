@@ -54,7 +54,9 @@ namespace Pixelplacement.XRTools
         {
             //hooks:
             Debug.Log(OVRManager.display);
-            OVRManager.display.RecenteredPose += HandleDisplayOnRecenteredPose;
+
+            if (OVRManager.display != null)
+                OVRManager.display.RecenteredPose += HandleDisplayOnRecenteredPose;
 
             //runs:
             StartCoroutine(SetupPlayArea());
@@ -62,7 +64,7 @@ namespace Pixelplacement.XRTools
 
         private void Start()
         {
-            if (OVRManager.instance.trackingOriginType != OVRManager.TrackingOrigin.FloorLevel)
+            if (OVRManager.instance?.trackingOriginType != OVRManager.TrackingOrigin.FloorLevel)
             {
                 Debug.LogError("RoomAnchor requires OVRManager's Tracking Origin Type to be set as FloorLevel for proper operation.");
             }
@@ -72,8 +74,9 @@ namespace Pixelplacement.XRTools
         private void OnDestroy()
         {
             //hooks:
-            OVRManager.display.RecenteredPose -= HandleDisplayOnRecenteredPose;
-            
+            if (OVRManager.display != null)
+                OVRManager.display.RecenteredPose -= HandleDisplayOnRecenteredPose;
+
             //sets:
             _instance = null;
             _callbacks.Clear();
@@ -84,7 +87,7 @@ namespace Pixelplacement.XRTools
         {
             StartCoroutine(SetupPlayArea());
         }
-        
+
         //Public Methods:
         public void RegisterForUpdates(Action callback)
         {
@@ -106,7 +109,8 @@ namespace Pixelplacement.XRTools
             {
                 transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
                 //dummy room anchors:
-                Points = new Vector3[] { new Vector3(-2,0,2), new Vector3(2,0,2), new Vector3(2,0,-2), new Vector3(-2, 0, -2)};
+
+                Points = new Vector3[] { new Vector3(-2, 0, 2), new Vector3(2, 0, 2), new Vector3(2, 0, -2), new Vector3(-2, 0, -2) };
             }
             else
             {
@@ -118,24 +122,24 @@ namespace Pixelplacement.XRTools
 
                 //find boundary:
                 Points = OVRManager.boundary.GetGeometry(OVRBoundary.BoundaryType.PlayArea);
-                
+
                 //set anchor:
                 transform.position = Vector3.Lerp(Points[0], Points[2], .5f);
                 Vector3 roomForward = Vector3.Normalize(Points[1] - Points[0]);
                 transform.rotation = Quaternion.LookRotation(roomForward);
-                
+
                 //callbacks:
                 foreach (var callback in _callbacks)
                 {
                     callback?.Invoke();
                 }
-                
+
                 _callbacks.Clear();
             }
 
             _updated = true;
         }
-        
+
         //Public Methods:
         public void Create()
         {
