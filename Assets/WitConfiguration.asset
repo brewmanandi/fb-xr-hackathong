@@ -14,13 +14,46 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   application:
     witConfiguration: {fileID: 0}
-    name: Built-in Models
-    id: voiceSDK_en
+    name: escape_the_metaverse
+    id: 341613767767678
     lang: en
-    isPrivate: 0
-    createdAt: 
-  configId: d2e96adb223a764428f98a1b405ae783
-  clientAccessToken: P6G654R7Z3R5DWEA3HHOKJETWOZCK5GY
-  entities: []
-  intents: []
+    isPrivate: 1
+    createdAt: 2021-11-18T01:26:57-0800
+  configId: 714b11892fe8b7143a4f83e7702c07f5
+  clientAccessToken: C55B4X4YT72UMDB3AZRQIL343LNENPNA
+  entities:
+  - witConfiguration: {fileID: 11400000}
+    id: 1216498492094601
+    name: start_hint
+    lookups:
+    - free-text
+    - keywords
+    roles:
+    - 
+    keywords:
+    - keyword: continue
+      synonyms:
+      - continue
+      - go on
+      - recommence
+      - resume
+    - keyword: start
+      synonyms:
+      - begin
+      - commence
+      - first step
+      - initiate
+      - launch
+      - start
+  intents:
+  - witConfiguration: {fileID: 11400000}
+    id: 270305288346267
+    name: start_escape
+    entities:
+    - witConfiguration: {fileID: 11400000}
+      id: 329155119016763
+      name: start_hint:start_hint
+      lookups: []
+      roles: []
+      keywords: []
   traits: []

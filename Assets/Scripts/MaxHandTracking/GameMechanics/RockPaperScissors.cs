@@ -101,7 +101,7 @@ public class RockPaperScissors : MonoBehaviour {
     private string GetDebugTextRps(int attacker, int defender) {
         string resultText = "NO RESULT";
         roundStateDebugText.text = "GOGOGOGOGO!!!";
-        roundGoGoGo.Play();
+
         if (attacker >= 0) {
             int result = rpsMatrix[attacker, defender];
 
@@ -161,5 +161,6 @@ public class RockPaperScissors : MonoBehaviour {
         rpsCubes[currentCubeIndex].SetActive(true);
         lastCubeIndex = currentCubeIndex;
         checkForResult = true;
+        roundGoGoGo.Play();
     }
 }
