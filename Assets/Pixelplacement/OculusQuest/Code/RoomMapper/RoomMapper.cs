@@ -52,6 +52,8 @@ namespace Pixelplacement.XRTools
         public List<GameObject> Windows { get; set; } = new List<GameObject>();
         public Vector3[,] WindowsPoses { get; set; } = new Vector3[0, 0];
 
+        public RoomObjects MappedObjects { get; } = new RoomObjects();
+
         //Public Variables:
         public Material ceilingMaterial;
         public Material wallMaterial;

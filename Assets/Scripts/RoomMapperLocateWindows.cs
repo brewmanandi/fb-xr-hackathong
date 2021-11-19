@@ -37,7 +37,7 @@ public class RoomMapperLocateWindows : RoomMapperPhase
     void HandleNext()
     {
         SaveWindows();
-        Next(true);
+        Next();
     }
 
     private void Update()
