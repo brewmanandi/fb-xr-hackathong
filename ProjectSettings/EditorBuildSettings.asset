@@ -6,9 +6,6 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/MaxHandTracking/MetaverseEscape.unity
-    guid: bdea0182ff30a3a4d8bfad4b542a5f68
-  - enabled: 0
     path: Assets/Scenes/MaxHandTracking/MetaverseEscapeWithObjMapper.unity
     guid: a454a013140a1364c962cfacffd9c124
   m_configObjects:
