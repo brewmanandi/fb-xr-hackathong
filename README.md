@@ -17,7 +17,7 @@ With "Escape the Metaverse" we enable players to overcome the hindrances mention
 
 ## Installation
 
-Direct Installation from ![APK](https://nextcloud.brew.at/index.php/s/QKXGaRkPzHzksKc/download?path=%2FFinal%20apk&files=escape-the-metaverse-final.apk) 
+Direct Installation from [APK](https://nextcloud.brew.at/index.php/s/QKXGaRkPzHzksKc/download?path=%2FFinal%20apk&files=escape-the-metaverse-final.apk) 
 
 ## Installation
 
