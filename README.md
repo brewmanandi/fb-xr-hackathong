@@ -9,7 +9,8 @@ VR-Escape rooms are fun, giving users the possibility to experience various sett
 
 With "Escape the Metaverse" we enable players to overcome the hindrances mentioned above. Passthrough prevents players from stumbling over furniture. VoiceSDK allows them to interact with a virtual guide and gives them a Jeopardy-like experience for answering questions. Using the HandSDK, we'll reach a new level of immersion and empty batteries in controllers belong to the past.
 
-![](readme-assets/FrontPage.png)
+<a href="https://nextcloud.brew.at/index.php/s/mgTJAirPLgeHTk8" title="Submission Video"><img src="readme-assets/video.png" alt="Submission Video" /></a>
+
 
 
 ## Team
