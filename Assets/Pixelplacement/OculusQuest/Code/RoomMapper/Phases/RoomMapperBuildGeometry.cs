@@ -50,6 +50,10 @@ namespace Pixelplacement.XRTools
             //gameobject creation:
             GameObject ceiling = new GameObject("(Ceiling)");
             GameObject floor = new GameObject("(Floor)");
+            floor.tag = "Floor";
+            ceiling.tag = "Ceiling";
+            floor.layer = LayerMask.NameToLayer("Floor");
+            ceiling.layer = LayerMask.NameToLayer("Ceiling");
             ceiling.transform.parent = RoomAnchor.Instance.transform;
             floor.transform.parent = RoomAnchor.Instance.transform;
 
@@ -185,6 +189,7 @@ namespace Pixelplacement.XRTools
                 GameObject wall = new GameObject("(Walls)");
 
                 wall.tag = "Wall"; // for collision detection with windows
+                wall.layer = LayerMask.NameToLayer("Wall");
                 wall.transform.parent = RoomAnchor.Instance.transform;
 
                 //orientation discovery:

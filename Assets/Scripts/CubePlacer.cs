@@ -1,4 +1,5 @@
 using Pixelplacement.XRTools;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -12,13 +13,20 @@ public class CubePlacer : MonoBehaviour
     [SerializeField, Tooltip(_tooltip)] GameObject _virtualTable;
     [SerializeField] GameObject _cubes;
 
+    private void Awake()
+    {
+        // we want to make sure to position the cubes JUST AFTER the environment has been set, 
+        // otherwise the position won't match and cubes will fall onto the floor
+        StartMetaverseEscape.OnEnvironmentSet -= PlaceCubesOnPhysicalSurface;
+        StartMetaverseEscape.OnEnvironmentSet += PlaceCubesOnPhysicalSurface;
+    }
 
-    private void OnEnable()
+    private void PlaceCubesOnPhysicalSurface()
     {
         // get the table 
-       Transform tableTransform = RoomMapper.Instance.MappedObjects.Objects[0]?.transform;
-        
-        
+        Transform tableTransform = RoomMapper.Instance.MappedObjects.Objects[0]?.transform;
+
+
         // plan 'B'
         if (tableTransform == null)
         {
@@ -37,9 +45,15 @@ public class CubePlacer : MonoBehaviour
         // locate table surface
         float yOffset = tableTransform.localScale.y * 0.5f;
         Vector3 surfaceTop = tableTransform.position + Vector3.up * yOffset;
-        
+
         // place on the table surface
         _cubes.transform.position = surfaceTop;
         _cubes.transform.forward = tableTransform.forward;
     }
+
+    private void OnDisable()
+    {
+        StartMetaverseEscape.OnEnvironmentSet -= PlaceCubesOnPhysicalSurface;
+    }
+
 }
