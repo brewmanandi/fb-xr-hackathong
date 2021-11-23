@@ -18,7 +18,7 @@ With "Escape the Metaverse" we enable players to overcome the hindrances mention
 
 ## Installation
 
-Direct Installation from [APK](https://nextcloud.brew.at/index.php/s/QKXGaRkPzHzksKc/download?path=%2FFinal%20apk&files=escape-the-metaverse-final.apk) 
+Direct Installation from [APK](https://nextcloud.brew.at/index.php/s/QKXGaRkPzHzksKc/download?path=%2FFinal%20apk&files=escape-the-metaverse-final.apk)
 
 ## Installation
 
@@ -40,6 +40,7 @@ For drawing virtual environment, press the right trigger once to start. To confi
 * Please note that the assets included in this project, may NOT be used for other purposes! People forking this repository are not eligible to use them in other projects.
 
 Used assets:
+[RoomMapper](http://www.pixelplacement.com/site/2021/10/18/roommapper-for-quest-passthrough)
 [Demon Dog](https://assetstore.unity.com/packages/3d/characters/creatures/demon-dog-122346)
 [POLYGON Knights](https://assetstore.unity.com/packages/3d/environments/fantasy/polygon-knights-low-poly-3d-art-by-synty-83694)
 [POLYGON Particle FX](https://assetstore.unity.com/packages/vfx/particles/polygon-particle-fx-low-poly-3d-art-by-synty-168372)
